@@ -1,0 +1,344 @@
+################################################################################
+# rddensity R PACKAGE -- rddensity -- Main function
+# Authors: Matias D. Cattaneo, Michael Jansson, Xinwei Ma
+################################################################################
+# version 0.1 Mar-11-2017
+
+################################################################################
+#' rddensity: Manipulation Testing using Local-Polynomial Density Estimation
+#'
+#' Density discontinuity test (a.k.a. manipulation test) is commonly employed in
+#'   regression discontinuity designs and other treatment effect settings to detect whether there is evidence suggesting
+#'   perfect self-selection (manipulation) around a cutoff where a treatment/policy
+#'   assignment changes. This package provides tools for conducting the aforementioned statistical
+#'   test: \code{\link{rddensity}} to construct local polynomial based density
+#'   discontinuity test given a prespecified cutoff, and \code{\link{rdbwdensity}} to
+#'   perform data-driven bandwidth selection. For a review on manipulation testing see McCrary (2008).
+#'   For more details, and related \code{Stata} and \code{R} packages
+#'   useful for analysis of RD designs, visit \url{https://sites.google.com/site/rdpackages}.
+#'
+#' @author
+#' Matias D. Cattaneo, University of Michigan.  \email{cattaneo@umich.edu}.
+#'
+#' Michael Jansson, University of California, Berkeley.  \email{mjansson@econ.berkeley.edu}.
+#'
+#' Xinwei Ma (maintainer), University of Michigan. \email{xinweima@umich.edu}.
+#'
+#' @references
+#' M.D. Cattaneo, B. Frandsen, and R. Titiunik. (2015).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Frandsen-Titiunik_2015_JCI.pdf}{Randomization Inference in the Regression Discontinuity Design: An Application to the Study of Party Advantages in the U.S. Senate}. \emph{Journal of Causal Inference} 3(1): 1-24.
+#'
+#' M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Regression Distribution Estimators}. Working Paper, University of Michigan.
+#'
+#' M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
+#'
+#' J. McCrary. (2008). Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test. \emph{Journal of Econometrics} 142(2): 698-714.
+#'
+#' @importFrom graphics text
+#' @importFrom stats dnorm
+#' @importFrom stats integrate
+#' @importFrom stats median
+#' @importFrom stats pnorm
+#' @importFrom stats sd
+#'
+#' @aliases rddensity-package
+"_PACKAGE"
+
+################################################################################
+#' Manipulation Testing using Local-Polynomial Density Estimation
+#'
+#' \code{rddensity} implements manipulation testing procedures using the local
+#'   polynomial density estimators proposed in Cattaneo, Jansson and Ma (2017a).
+#'
+#' Companion command: \code{\link{rdbwdensity}} for data-driven bandwidth selection.
+#'   A detailed introduction to this command is given in Cattaneo, Jansson and Ma (2017a).
+#'   A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2017b).
+#'
+#' @param X Numeric vector or one dimensional matrix / data frame, the running variable.
+#' @param c Numeric, the cutoff point, default being 0.
+#' @param p Integer, the order of the local-polynomial used to construct the density
+#'   point estimators, with default beign 2. Should be between 1 and 7.
+#' @param q Integer, the order of the local-polynomial used to construct the bias-corrected
+#'   density point estimators. Should be larger than \code{p} (when set to the
+#'   default 0, it will be \code{p+1}).
+#' @param kernel String, the kernel function, can be \code{triangular} (default),
+#'   \code{uniform} or \code{epanechnikov}.
+#' @param fitselect String, either the \code{unrestricted} or the \code{restricted} model
+#'   (when set to the default, the unrestricted model will be used).
+#' @param h Numeric, the bandwidths to the left and right of cutoff for the manipulation test
+#'   (when set to the default, the \code{\link{rdbwdensity}} command will be used to
+#'   compute data driven bandwidths). If only one numeric value is provided, it will be used
+#'   as the common bandwidth. Note that in the restricted model, the two
+#'   bandwidths should be the same.
+#' @param bwselect String, the bandwidth selection method, could be \code{each}, \code{sum},
+#'   \code{diff} or \code{comb} (default is \code{comb}). This argument will only be effective
+#'   if at least one bandwidth is unspecified by the user. Also in the restricted model, the
+#'   \code{each} option is not allowed.
+#' @param vce String, the standard error estimator, could be \code{plugin} (default) or
+#'   \code{jackknife}. When the bandwidths are not specified by the user, this argument will
+#'   also affect the bandwidth selection.
+#' @param all Boolean, whether test based on conventional method (i.e. without bias correction)
+#'   should be conducted (default is \code{FALSE}).
+#'
+#' @return
+#' \item{hat}{\code{left}/\code{right}: density estimate to the left/right of cutoff; \code{diff}: difference in
+#'   estimated densities on the two sides of cutoff.}
+#' \item{sd_asy}{\code{left}/\code{right}: standard error for the estimated density to the left/right of the
+#'   cutoff; \code{diff}: standard error for the difference in estimated densities. (Based on
+#'   asymptotic formula.)}
+#' \item{sd_jk}{\code{left}/\code{right}: standard error for the estimated density to the left/right of the
+#'   cutoff; \code{diff}: standard error for the difference in estimated densities. (Based on the
+#'   jackknife method.)}
+#' \item{test}{\code{t_asy}/\code{t_jk}: t-statistic for the density discontinuity test, with standard error
+#'   based on asymptotic formula or the jackknife; \code{p_asy}/\code{p_jk}: p-value for the density
+#'   discontinuity test, with standard error based on asymptotic formula or the jackknife.}
+#' \item{hat_p}{Same as \code{hat}, without bias correction (only available when \code{all=TRUE}).}
+#' \item{sd_asy_p}{Same as \code{sd_asy}, without bias correction (only available when \code{all=TRUE}).}
+#' \item{sd_jk_p}{Same as \code{sd_jk}, without bias correction (only available when \code{all=TRUE}).}
+#' \item{test_p}{Same as \code{test}, without bias correction (only available when \code{all=TRUE}).}
+#' \item{N}{\code{full}: full sample size; \code{left}/\code{right}: sample size to the left/right of the cutoff;
+#'   \code{eff_left}/\code{eff_right}: effective sample size to the left/right of the cutoff (this depends
+#'   on the bandwidth).}
+#' \item{h}{\code{left}/\code{right}: bandwidth used to the left/right of the cutoff.}
+#' \item{opt}{Collects the options used, includes: \code{fitselect}, \code{kernel}, \code{bwselectl},
+#'   \code{bwselect}, \code{hscale}, \code{vce}, \code{c}, \code{p}, \code{q}, \code{all}.
+#'   See options for \code{rddensity}.}
+#' \item{X_min}{\code{left}/\code{right}: the samllest observation to the left/right of the cutoff.}
+#' \item{X_max}{\code{left}/\code{right}: the largest observation to the left/right of the cutoff.}
+#'
+#' @references
+#' M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Regression Distribution Estimators}. Working Paper, University of Michigan.
+#'
+#' M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
+#'
+#' @author
+#' Matias D. Cattaneo, University of Michigan.  \email{cattaneo@umich.edu}.
+#'
+#' Michael Jansson, University of California, Berkeley.  \email{mjansson@econ.berkeley.edu}.
+#'
+#' Xinwei Ma (maintainer), University of Michigan. \email{xinweima@umich.edu}.
+#'
+#' @seealso \code{\link{rdbwdensity}}
+#'
+#' @examples
+#' # density being continuous
+#' x <- rnorm(1000)
+#' example <- rddensity(X = x, vce="jackknife")
+#' summary(example)
+#' # density being discontinuous
+#' x[x>0] <- x[x>0] * 2
+#' example <- rddensity(X = x, vce="jackknife")
+#' summary(example)
+#' @export
+rddensity <- function(X, c=0, p=2, q=0, kernel="", fitselect="", h=c(), bwselect="", vce="", all=FALSE) {
+
+  ################################################################################
+  # default values
+  ################################################################################
+  if (q==0) { q <- p+1 }
+  if (kernel == "") { kernel <- "triangular" }
+  kernel <- tolower(kernel)
+  if (fitselect == "") { fitselect <- "unrestricted" }
+  fitselect <- tolower(fitselect)
+  if (bwselect == "") { bwselect <- "comb" }
+  bwselect <- tolower(bwselect)
+  if (vce == "") { vce <- "jackknife" }
+  vce <- tolower(vce)
+  # end of default values
+
+  ################################################################################
+  # bandwidth values
+  ################################################################################
+  if (length(h) == 0) {
+    hl <- hr <- 0
+  }
+  if (length(h) == 1) {
+    hl <- hr <- h
+    if (h <= 0) {
+      stop("Bandwidth has to be positive.")
+    }
+  }
+  if (length(h) == 2) {
+    hl <- h[1]; hr <- h[2]
+    if (min(h) <= 0) {
+      stop("Bandwidth has to be positive.")
+    }
+  }
+  if (length(h) > 2) {
+    stop("No more than two bandwidths are accepted.")
+  }
+
+  ################################################################################
+  # sample sizes
+  ################################################################################
+  X <- sort(X)
+  N <- length(X); Nl <- sum(X<c); Nr <- sum(X>=c); Xmin <- min(X); Xmax <- max(X)
+  # end of sample sizes
+
+  ################################################################################
+  # error handling
+  ################################################################################
+  if (c <= Xmin | c >= Xmax) { stop("The cutoff should be set within the range of the data.") }
+  if (Nl <= 10 | Nr <= 10) { stop("Not enough observations to perform calculations.") }
+  if (p!=1 & p!=2 & p!=3 & p!=4 & p!=5 & p!=6 & p!= 7) { stop("p must be an integer between 1 and 7.") }
+  if (p >= q) { stop("q should be larger than p.") }
+  if (kernel!="uniform" & kernel!= "triangular" & kernel!="epanechnikov") { stop("kernel incorrectly specified.") }
+  if (fitselect!="unrestricted" & fitselect!="restricted") { stop("fitselect incorrectly specified.") }
+  if (fitselect=="restricted" & hl!=hr) { stop("Bandwidths must be equal in restricted model.") }
+  if (bwselect!="each" & bwselect!="diff" & bwselect!="sum" & bwselect!="comb") { stop("bwselect incorrectly specified.") }
+  if (fitselect=="restricted" & bwselect=="each") { stop("bwselect=each is not available in the restricted model.") }
+  if (vce!="plugin" & vce!="jackknife") { stop("vce incorrectly specified.") }
+  # end of error handling
+
+  ################################################################################
+  # bandwidth selection
+  ################################################################################
+  if (hl > 0 & hr > 0) { bwselectl <- "mannual"} else { bwselectl <- "estimated"
+    out <- rdbwdensity(X=X, c=c, p=p, kernel=kernel, fitselect=fitselect, vce=vce)$h
+    if (fitselect=="unrestricted" & bwselect=="each" & hl==0)  hl = out[1,1]
+  	if (fitselect=="unrestricted" & bwselect=="each" & hr==0)  hr = out[2,1]
+		if (fitselect=="unrestricted" & bwselect=="diff" & hl==0)  hl = out[3,1]
+		if (fitselect=="unrestricted" & bwselect=="diff" & hr==0)  hr = out[3,1]
+		if (fitselect=="unrestricted" & bwselect=="sum"  & hl==0)  hl = out[4,1]
+		if (fitselect=="unrestricted" & bwselect=="sum"  & hr==0)  hr = out[4,1]
+		if (fitselect=="unrestricted" & bwselect=="comb" & hl==0)  hl = median(c(out[1,1], out[3,1], out[4,1]))
+		if (fitselect=="unrestricted" & bwselect=="comb" & hr==0)  hr = median(c(out[2,1], out[3,1], out[4,1]))
+
+		if (fitselect=="restricted" & bwselect=="diff" & hl==0)  hl = out[3,1]
+		if (fitselect=="restricted" & bwselect=="diff" & hr==0)  hr = out[3,1]
+		if (fitselect=="restricted" & bwselect=="sum"  & hl==0)  hl = out[4,1]
+		if (fitselect=="restricted" & bwselect=="sum"  & hr==0)  hr = out[4,1]
+		if (fitselect=="restricted" & bwselect=="comb" & hl==0)  hl = min(c(out[3,1], out[4,1]))
+		if (fitselect=="restricted" & bwselect=="comb" & hr==0)  hr = min(c(out[3,1], out[4,1]))
+  }
+  # end of bandwidth selection
+
+  ################################################################################
+  # data trimming
+  ################################################################################
+  hscale <- 1;
+  X <- X - c; Y <- (0:(N-1)) / (N-1);
+  Xh <- X[(X>=-1*hl*hscale) & (X<=hr*hscale)]; Yh <- Y[(X>=-1*hl*hscale) & (X<=hr*hscale)]
+  Nlh <- sum(Xh < 0); Nrh <- sum(Xh >= 0)
+  if (Nlh < 5 | Nrh < 5) { stop("Not enough observations to perform calculation.") }
+  Nh <- Nlh + Nrh
+  # end of data trimming
+
+  ################################################################################
+  # estimation
+  ################################################################################
+  fV_q <- rddensity_fV(Y=Yh, X=Xh, Nl=Nl, Nr=Nr, Nlh=Nlh, Nrh=Nrh, hl=hl*hscale, hr=hr*hscale, p=q, s=1, kernel=kernel, fitselect=fitselect)
+  T_asy <- fV_q[3, 1] / sqrt(fV_q[3, 3]); T_jk <- fV_q[3, 1] / sqrt(fV_q[3, 2])
+  p_asy <- pnorm(abs(T_asy), lower.tail=FALSE) * 2; p_jk <- pnorm(abs(T_jk), lower.tail=FALSE) * 2
+
+  if (all) {
+    fV_p <- rddensity_fV(Y=Yh, X=Xh, Nl=Nl, Nr=Nr, Nlh=Nlh, Nrh=Nrh, hl=hl*hscale, hr=hr*hscale, p=p, s=1, kernel=kernel, fitselect=fitselect)
+    T_asy_p <- fV_p[3, 1] / sqrt(fV_p[3, 3]); T_jk_p <- fV_p[3, 1] / sqrt(fV_p[3, 2])
+    p_asy_p <- pnorm(abs(T_asy_p), lower.tail=FALSE) * 2; p_jk_p <- pnorm(abs(T_jk_p), lower.tail=FALSE) * 2
+
+    result <- list( hat=   list(left=fV_q[1,1], right=fV_q[2,1], diff=fV_q[3,1]),
+                    sd_asy=list(left=sqrt(fV_q[1,3]), right=sqrt(fV_q[2,3]), diff=sqrt(fV_q[3,3])),
+                    sd_jk= list(left=sqrt(fV_q[1,2]), right=sqrt(fV_q[2,2]), diff=sqrt(fV_q[3,2])),
+                    test=  list(t_asy=T_asy, t_jk=T_jk, p_asy=p_asy, p_jk=p_jk),
+
+                    hat_p=   list(left=fV_p[1,1], right=fV_p[2,1], diff=fV_p[3,1]),
+                    sd_asy_p=list(left=sqrt(fV_p[1,3]), right=sqrt(fV_p[2,3]), diff=sqrt(fV_p[3,3])),
+                    sd_jk_p= list(left=sqrt(fV_p[1,2]), right=sqrt(fV_p[2,2]), diff=sqrt(fV_p[3,2])),
+                    test_p=  list(t_asy=T_asy_p, t_jk=T_jk_p, p_asy=p_asy_p, p_jk=p_jk_p),
+
+                    N=     list(full=N, left=Nl, right=Nr, eff_left=Nlh, eff_right=Nrh),
+                    h=     list(left=hl*hscale, right=hr*hscale),
+                    opt=   list(fitselect=fitselect, kernel=kernel, bwselectl=bwselectl, bwselect=bwselect,
+                                vce=vce, c=c, p=p, q=q, all=all),
+                    X_min      =list(left=min(X[X<0])+c, right=min(X[X>=0])+c),
+                    X_max      =list(left=max(X[X<0])+c, right=max(X[X>=0])+c))
+  } else {
+    result <- list( hat=   list(left=fV_q[1,1], right=fV_q[2,1], diff=fV_q[3,1]),
+                    sd_asy=list(left=sqrt(fV_q[1,3]), right=sqrt(fV_q[2,3]), diff=sqrt(fV_q[3,3])),
+                    sd_jk= list(left=sqrt(fV_q[1,2]), right=sqrt(fV_q[2,2]), diff=sqrt(fV_q[3,2])),
+                    test=  list(t_asy=T_asy, t_jk=T_jk, p_asy=p_asy, p_jk=p_jk),
+
+                    hat_p=   list(left=NA, right=NA, diff=NA),
+                    sd_asy_p=list(left=NA, right=NA, diff=NA),
+                    sd_jk_p= list(left=NA, right=NA, diff=NA),
+                    test_p=  list(t_asy=NA, t_jk=NA, p_asy=NA, p_jk=NA),
+
+                    N=     list(full=N, left=Nl, right=Nr, eff_left=Nlh, eff_right=Nrh),
+                    h=     list(left=hl*hscale, right=hr*hscale),
+                    opt=   list(fitselect=fitselect, kernel=kernel, bwselectl=bwselectl, bwselect=bwselect,
+                                vce=vce, c=c, p=p, q=q, all=all),
+                    X_min      =list(left=min(X[X<0])+c, right=min(X[X>=0])+c),
+                    X_max      =list(left=max(X[X<0])+c, right=max(X[X>=0])+c))
+  }
+
+
+  class(result) <- "CJMrddensity"
+  return(result)
+}
+
+################################################################################
+#' Internal function.
+#'
+#' @param object Class \code{CJMrddensity} objects.
+#'
+#' @keywords internal
+#' @export
+summary.CJMrddensity <- function(object, ...) {
+  x <- object
+  cat("\nRD Manipulation Test using local polynomial density estimation.\n")
+  cat("\n")
+
+  cat(paste(format("Number of obs =", width=22), toString(x$N$full), sep="")); cat("\n")
+  cat(paste(format("Model =", width=22), x$opt$fitselect, sep="")); cat("\n")
+  cat(paste(format("Kernel =", width=22), x$opt$kernel, sep="")); cat("\n")
+  if (x$opt$bwselectl!="mannual") {
+    cat(paste(format("BW method =", width=22), x$opt$bwselect, sep="")); cat("\n")
+  } else {
+    cat(paste(format("BW method =", width=22), x$opt$bwselectl, sep="")); cat("\n")
+  }
+  cat(paste(format("VCE method =", width=22), x$opt$vce, sep="")); cat("\n")
+  cat("\n")
+
+  cat(paste(format(paste("Cutoff c = ", toString(round(x$opt$c, 3)), sep=""), width=22), format("Left of c", width=20), format("Right of c", width=20), sep="")); cat("\n")
+  cat(paste(format("Number of obs", width=22), format(toString(x$N$left), width=20), format(toString(x$N$right), width=20), sep="")); cat("\n")
+  cat(paste(format("Eff. Number of obs", width=22), format(toString(x$N$eff_left), width=20), format(toString(x$N$eff_right), width=20), sep="")); cat("\n")
+  #cat(paste(format("Min Running var.", width=22), format(toString(round(x$X_min$left, 3)), width=20), format(toString(round(x$X_min$right, 3)), width=20), sep="")); cat("\n")
+  #cat(paste(format("Max Running var.", width=22), format(toString(round(x$X_max$left, 3)), width=20), format(toString(round(x$X_max$right, 3)), width=20), sep="")); cat("\n")
+  cat(paste(format("Order est. (p)", width=22), format(toString(x$opt$p), width=20), format(toString(x$opt$p), width=20), sep="")); cat("\n")
+  cat(paste(format("Order bias (q)", width=22), format(toString(x$opt$q), width=20), format(toString(x$opt$q), width=20), sep="")); cat("\n")
+  cat(paste(format("BW est. (h)", width=22), format(toString(round(x$h$left, 3)), width=20), format(toString(round(x$h$right, 3)), width=20), sep="")); cat("\n")
+  cat("\n")
+
+  cat(paste(format("Method", width=22), format("T", width=20), format("P > |T|", width=20), sep="")); cat("\n")
+  if (x$opt$all) {
+    if (x$opt$vce == "plugin") {
+      cat(paste(format("Conventional", width=22), format(toString(round(x$test_p$t_asy, 4)), width=20), format(toString(round(x$test_p$p_asy, 4)), width=20), sep="")); cat("\n")
+    } else {
+      cat(paste(format("Conventional", width=22), format(toString(round(x$test_p$t_jk, 4)), width=20), format(toString(round(x$test_p$p_jk, 4)), width=20), sep="")); cat("\n")
+    }
+  }
+  if (x$opt$vce == "plugin") {
+    cat(paste(format("Robust", width=22), format(toString(round(x$test$t_asy, 4)), width=20), format(toString(round(x$test$p_asy, 4)), width=20), sep="")); cat("\n")
+  } else {
+    cat(paste(format("Robust", width=22), format(toString(round(x$test$t_jk, 4)), width=20), format(toString(round(x$test$p_jk, 4)), width=20), sep="")); cat("\n")
+  }
+  cat("\n")
+}
+
+################################################################################
+#' Internal function.
+#'
+#' @param x Class \code{CJMrddensity} objects.
+#'
+#' @keywords internal
+#' @export
+print.CJMrddensity <- function(x, ...) {
+  cat("Call:\n")
+  cat("rddensity.\n")
+  cat("Sample size:\ ", x$N$full, ". ", "Cutoff: ", x$opt$c, ".\n", sep="")
+  cat("Model:\ ", x$opt$fitselect, ". ", "Kernel: ", x$opt$kernel, ". ", "VCE: ", x$opt$vce, sep="")
+}
+
+
+
+
+
