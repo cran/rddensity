@@ -1,10 +1,4 @@
 ################################################################################
-# rddensity R PACKAGE -- rddensity -- Main function
-# Authors: Matias D. Cattaneo, Michael Jansson, Xinwei Ma
-################################################################################
-# version 0.1 Mar-11-2017
-
-################################################################################
 #' rddensity: Manipulation Testing using Local-Polynomial Density Estimation
 #'
 #' Density discontinuity test (a.k.a. manipulation test) is commonly employed in
@@ -12,8 +6,9 @@
 #'   perfect self-selection (manipulation) around a cutoff where a treatment/policy
 #'   assignment changes. This package provides tools for conducting the aforementioned statistical
 #'   test: \code{\link{rddensity}} to construct local polynomial based density
-#'   discontinuity test given a prespecified cutoff, and \code{\link{rdbwdensity}} to
-#'   perform data-driven bandwidth selection. For a review on manipulation testing see McCrary (2008).
+#'   discontinuity test given a prespecified cutoff, \code{\link{rdbwdensity}} to
+#'   perform data-driven bandwidth selection, and \code{\link{rdplotdensity}} to construct density plot near the cutoff.
+#'   For a review on manipulation testing see McCrary (2008).
 #'   For more details, and related \code{Stata} and \code{R} packages
 #'   useful for analysis of RD designs, visit \url{https://sites.google.com/site/rdpackages}.
 #'
@@ -39,6 +34,9 @@
 #' @importFrom stats median
 #' @importFrom stats pnorm
 #' @importFrom stats sd
+#' @importFrom stats quantile
+#' @import lpdensity
+#' @import ggplot2
 #'
 #' @aliases rddensity-package
 "_PACKAGE"
@@ -48,36 +46,45 @@
 #'
 #' \code{rddensity} implements manipulation testing procedures using the local
 #'   polynomial density estimators proposed in Cattaneo, Jansson and Ma (2017a).
+#'   For a review on manipulation testing see McCrary (2008).
 #'
-#' Companion command: \code{\link{rdbwdensity}} for data-driven bandwidth selection.
-#'   A detailed introduction to this command is given in Cattaneo, Jansson and Ma (2017a).
+#' Companion command: \code{\link{rdbwdensity}} for data-driven bandwidth selection, and
+#'   \code{\link{rdplotdensity}} for density plot.
 #'   A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2017b).
+#'   Related Stata and R packages useful for inference in regression discontinuity (RD)
+#'   designs are described at \url{https://sites.google.com/site/rdpackages}.
 #'
 #' @param X Numeric vector or one dimensional matrix / data frame, the running variable.
-#' @param c Numeric, the cutoff point, default being 0.
-#' @param p Integer, the order of the local-polynomial used to construct the density
-#'   point estimators, with default beign 2. Should be between 1 and 7.
-#' @param q Integer, the order of the local-polynomial used to construct the bias-corrected
-#'   density point estimators. Should be larger than \code{p} (when set to the
-#'   default 0, it will be \code{p+1}).
-#' @param kernel String, the kernel function, can be \code{triangular} (default),
-#'   \code{uniform} or \code{epanechnikov}.
-#' @param fitselect String, either the \code{unrestricted} or the \code{restricted} model
-#'   (when set to the default, the unrestricted model will be used).
-#' @param h Numeric, the bandwidths to the left and right of cutoff for the manipulation test
-#'   (when set to the default, the \code{\link{rdbwdensity}} command will be used to
-#'   compute data driven bandwidths). If only one numeric value is provided, it will be used
-#'   as the common bandwidth. Note that in the restricted model, the two
-#'   bandwidths should be the same.
-#' @param bwselect String, the bandwidth selection method, could be \code{each}, \code{sum},
-#'   \code{diff} or \code{comb} (default is \code{comb}). This argument will only be effective
-#'   if at least one bandwidth is unspecified by the user. Also in the restricted model, the
-#'   \code{each} option is not allowed.
-#' @param vce String, the standard error estimator, could be \code{plugin} (default) or
-#'   \code{jackknife}. When the bandwidths are not specified by the user, this argument will
-#'   also affect the bandwidth selection.
-#' @param all Boolean, whether test based on conventional method (i.e. without bias correction)
-#'   should be conducted (default is \code{FALSE}).
+#' @param c Numeric, specifies the threshold or cutoff value in the support of \code{X},
+#'   which determes the two samples (e.g., control and treatment units in RD settings).  Default
+#'   is \code{0}.
+#' @param p Integer, specifies the order of the local-polynomial used to construct the density
+#'   point estimators.  Default is \code{2} (local quadratic approximation).
+#' @param q Integer, specifies the order of the local-polynomial used to construct the
+#'   bias-corrected density point estimators.  Default is \code{p+1} (local cubic approximation).
+#' @param kernel String, specifies the kernel function used to construct the local-polynomial
+#'   estimator(s). Options are: \code{"triangular"}, \code{"epanechnikov"}, and \code{"uniform"}. Default is
+#'   \code{"triangular"}.
+#' @param fitselect String, specifies whether restrictions should be imposed. Options are:
+#'   \code{"unrestricted"} for density estimation without any restrictions (two-sample, unrestricted
+#'   inference). This is the default option. \code{"restricted"} for density estimation assuming
+#'   equal c.d.f. and higher-order derivatives.
+#' @param h Numeric, specifies the bandwidth used to construct the density estimators on the
+#'   two sides of the cutoff. If not specified, the bandwidth is computed by the companion
+#'   command \code{\link{rdbwdensity}}. If two bandwidths are specified, the first bandwidth
+#'   is used for the data below the cutoff and the second bandwidth is used for the data above the cutoff.
+#' @param bwselect String, specifies the bandwidth selection procedure to be used. Options are:
+#'   \code{"each"} bandwidth selection based on MSE of each density separately (two distinct bandwidths).
+#'   \code{"diff"} bandwidth selection based on MSE of difference of densities (one common bandwidth).
+#'   \code{"sum"} bandwidth selection based on MSE of sum of densities (one common bandwidth).
+#'   \code{"comb"} (this is the default option) bandwidth is selected as a combination of the alternatives above: for \code{fitselect = "unrestricted"},
+#'   it selects \code{median(each,diff,sum)}; for \code{fitselect = "restricted"}, it selects \code{min(diff,sum)}.
+#' @param vce String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
+#'   \code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors. This
+#'   is the default option.
+#' @param all Boolean, if specified, rddensity reports two testing procedures (given choices \code{fitselect}
+#'    and \code{bwselect}): Conventional test statistic (not valid when using MSE-optimal bandwidth choice).
+#'    Robust bias-corrected statistic.
 #'
 #' @return
 #' \item{hat}{\code{left}/\code{right}: density estimate to the left/right of cutoff; \code{diff}: difference in
@@ -110,6 +117,8 @@
 #'
 #' M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
 #'
+#' J. McCrary. (2008). Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test. \emph{Journal of Econometrics} 142(2): 698-714.
+#'
 #' @author
 #' Matias D. Cattaneo, University of Michigan.  \email{cattaneo@umich.edu}.
 #'
@@ -117,17 +126,17 @@
 #'
 #' Xinwei Ma (maintainer), University of Michigan. \email{xinweima@umich.edu}.
 #'
-#' @seealso \code{\link{rdbwdensity}}
+#' @seealso \code{\link{rdbwdensity}}, \code{\link{rdplotdensity}}
 #'
 #' @examples
 #' # density being continuous
-#' x <- rnorm(1000)
-#' example <- rddensity(X = x, vce="jackknife")
-#' summary(example)
+#' set.seed(42)
+#' x <- rnorm(2000, mean = -0.5)
+#' summary(rddensity(X = x, vce="jackknife"))
 #' # density being discontinuous
 #' x[x>0] <- x[x>0] * 2
-#' example <- rddensity(X = x, vce="jackknife")
-#' summary(example)
+#' summary(rddensity(X = x, vce="jackknife"))
+#'
 #' @export
 rddensity <- function(X, c=0, p=2, q=0, kernel="", fitselect="", h=c(), bwselect="", vce="", all=FALSE) {
 
@@ -337,8 +346,3 @@ print.CJMrddensity <- function(x, ...) {
   cat("Sample size:\ ", x$N$full, ". ", "Cutoff: ", x$opt$c, ".\n", sep="")
   cat("Model:\ ", x$opt$fitselect, ". ", "Kernel: ", x$opt$kernel, ". ", "VCE: ", x$opt$vce, sep="")
 }
-
-
-
-
-

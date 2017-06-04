@@ -9,20 +9,25 @@ rdbwdensity(X, c = 0, p = 2, kernel = "", fitselect = "", vce = "")
 \arguments{
 \item{X}{Numeric vector or one dimensional matrix / data frame, the running variable.}
 
-\item{c}{Numeric, the cutoff point, default being 0.}
+\item{c}{Numeric, specifies the threshold or cutoff value in the support of \code{X},
+which determes the two samples (e.g., control and treatment units in RD settings).  Default
+is \code{0}.}
 
-\item{p}{Integer, the order of the local-polynomial used to construct the density
-estimators, with default beign 2. It should be between 1 and 7.}
+\item{p}{Integer, specifies the order of the local-polynomial used to construct the density
+point estimators.  Default is \code{2} (local quadratic approximation).}
 
-\item{kernel}{String, the kernel function, can be \code{triangular} (default),
-\code{uniform} or \code{epanechnikov}.}
+\item{kernel}{String, specifies the kernel function used to construct the local-polynomial
+estimator(s). Options are: \code{"triangular"}, \code{"epanechnikov"}, and \code{"uniform"}. Default is
+\code{"triangular"}.}
 
-\item{fitselect}{String, either the \code{unrestricted} or the \code{restricted} model
-(when set to the default, the unrestricted model will be used).}
+\item{fitselect}{String, specifies whether restrictions should be imposed. Options are:
+\code{"unrestricted"} for density estimation without any restrictions (two-sample, unrestricted
+inference). This is the default option. \code{"restricted"} for density estimation assuming
+equal c.d.f. and higher-order derivatives.}
 
-\item{vce}{String, the standard error estimator, could be \code{plugin} (default) or
-\code{jackknife}. When the bandwidths are not specified by the user, this argument will
-also affect the bandwidth selection.}
+\item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
+\code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors. This
+is the default option.}
 }
 \value{
 \item{h}{Bandwidths for density discontinuity test, left and right to the cutoff, and asymptotic variance and bias.}
@@ -39,14 +44,14 @@ also affect the bandwidth selection.}
 }
 \details{
 Companion command: \code{\link{rddensity}} for density discontinuity (manipulation)
-  testing. A detailed introduction to this command is given in Cattaneo, Jansson
-  and Ma (2017a). A companion \code{Stata} package is described in Cattaneo,
-  Jansson and Ma (2017b).
+  testing. A companion \code{Stata} package is described in Cattaneo,
+  Jansson and Ma (2017b). Related Stata and R packages useful for inference in regression discontinuity (RD)
+  designs are described at \url{https://sites.google.com/site/rdpackages}.
 }
 \examples{
-x <- rnorm(1000)
-example <- rdbwdensity(X = x, c = 1, vce="jackknife")
-summary(example)
+set.seed(42); x <- rnorm(2000, mean = -0.5)
+summary(rdbwdensity(X = x, vce="jackknife"))
+
 }
 \references{
 M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Regression Distribution Estimators}. Working Paper, University of Michigan.

@@ -11,8 +11,9 @@ Density discontinuity test (a.k.a. manipulation test) is commonly employed in
   perfect self-selection (manipulation) around a cutoff where a treatment/policy
   assignment changes. This package provides tools for conducting the aforementioned statistical
   test: \code{\link{rddensity}} to construct local polynomial based density
-  discontinuity test given a prespecified cutoff, and \code{\link{rdbwdensity}} to
-  perform data-driven bandwidth selection. For a review on manipulation testing see McCrary (2008).
+  discontinuity test given a prespecified cutoff, \code{\link{rdbwdensity}} to
+  perform data-driven bandwidth selection, and \code{\link{rdplotdensity}} to construct density plot near the cutoff.
+  For a review on manipulation testing see McCrary (2008).
   For more details, and related \code{Stata} and \code{R} packages
   useful for analysis of RD designs, visit \url{https://sites.google.com/site/rdpackages}.
 }
