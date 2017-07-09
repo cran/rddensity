@@ -1,13 +1,7 @@
 ################################################################################
-# rddensity R PACKAGE -- rddensity -- Data
-# Authors: Matias D. Cattaneo, Michael Jansson, Xinwei Ma
-################################################################################
-# version 0.1 Mar-11-2017
-
-################################################################################
-#' RD Senate Data.
+#' @title RD Senate Data.
 #'
-#' Extract of the dataset constructed by Cattaneo, Frandsen, and Titiunik (2015),
+#' @description Extract of the dataset constructed by Cattaneo, Frandsen, and Titiunik (2015),
 #'   which include measures of incumbency advantage in the U.S. Senate for the
 #'   period 1914-2010.
 #'

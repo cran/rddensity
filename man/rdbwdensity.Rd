@@ -2,7 +2,7 @@
 % Please edit documentation in R/rdbwdensity.R
 \name{rdbwdensity}
 \alias{rdbwdensity}
-\title{Bandwidth Selection for Manipulation Testing using Local-Polynomial Density Estimation.}
+\title{Bandwidth Selection for Manipulation Testing Using Local-Polynomial Density Estimation.}
 \usage{
 rdbwdensity(X, c = 0, p = 2, kernel = "", fitselect = "", vce = "")
 }
@@ -40,12 +40,13 @@ is the default option.}
 \description{
 \code{rdbwdensity} implements several data-driven bandwidth selection methods
   useful to construct manipulation testing procedures using the local polynomial
-  density estimators proposed in Cattaneo, Jansson and Ma (2017a).
-}
-\details{
+  density estimators proposed in \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Cattaneo, Jansson and Ma (2017a)}.
+
 Companion command: \code{\link{rddensity}} for density discontinuity (manipulation)
-  testing. A companion \code{Stata} package is described in Cattaneo,
-  Jansson and Ma (2017b). Related Stata and R packages useful for inference in regression discontinuity (RD)
+  testing. A companion \code{Stata} package is described in \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{Cattaneo,
+  Jansson and Ma (2017b)}.
+
+Related Stata and R packages useful for inference in regression discontinuity (RD)
   designs are described at \url{https://sites.google.com/site/rdpackages}.
 }
 \examples{
@@ -54,7 +55,7 @@ summary(rdbwdensity(X = x, vce="jackknife"))
 
 }
 \references{
-M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Regression Distribution Estimators}. Working Paper, University of Michigan.
+M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Polynomial Density Estimators}. Working Paper, University of Michigan.
 
 M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
 }
