@@ -110,8 +110,8 @@ rdbwdensity <- function(X, c=0, p=2, kernel="", fitselect="", vce="") {
 
   hn <- matrix(NA, ncol=3, nrow=4)
   colnames(hn) <- c("bw", "variance", "biassq"); rownames(hn) <- c("l", "r", "diff", "sum")
-  fV_b <- rddensity_fV(Y=Yb, X=Xb, Nl=Nl, Nr=Nr, Nlh=Nlb, Nrh=Nrb, hl=bn, hr=bn, p=p+2, s=p+1, kernel=kernel, fitselect=fitselect)
-  fV_c <- rddensity_fV(Y=Yc, X=Xc, Nl=Nl, Nr=Nr, Nlh=Nlc, Nrh=Nrc, hl=cn, hr=cn, p=p, s=1, kernel=kernel, fitselect=fitselect)
+  fV_b <- rddensity_fV(Y=Yb, X=Xb, Nl=Nl, Nr=Nr, Nlh=Nlb, Nrh=Nrb, hl=bn, hr=bn, p=p+2, s=p+1, kernel=kernel, fitselect=fitselect, vce=vce)
+  fV_c <- rddensity_fV(Y=Yc, X=Xc, Nl=Nl, Nr=Nr, Nlh=Nlc, Nrh=Nrc, hl=cn, hr=cn, p=p, s=1, kernel=kernel, fitselect=fitselect, vce=vce)
 
   if (vce == "plugin") { hn[, 2] <- N * cn * fV_c[, 3]  } else { hn[, 2] <- N * cn * fV_c[, 2] }
   if (fitselect == "unrestricted") {

@@ -4,7 +4,7 @@
 \alias{rddensity_fV}
 \title{Internal function, implements density test.}
 \usage{
-rddensity_fV(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s, kernel, fitselect)
+rddensity_fV(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s, kernel, fitselect, vce)
 }
 \arguments{
 \item{Y}{Numeric vector or data matrix, the estimated c.d.f.}
@@ -26,6 +26,9 @@ within bandwidth}
 \code{uniform} or \code{epanechnikov}.}
 
 \item{fitselect}{String, the model, can be \code{restricted} or \code{unrestricted}}
+
+\item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
+\code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors.}
 }
 \value{
 Returns a data frame for further use.

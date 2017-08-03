@@ -324,12 +324,14 @@ Psigenerate <- function(p) {
 #' @param kernel String, the kernel function, can be \code{triangular} (default),
 #'   \code{uniform} or \code{epanechnikov}.
 #' @param fitselect String, the model, can be \code{restricted} or \code{unrestricted}
+#' @param vce String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
+#'   \code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors.
 #'
 #' @return Returns a data frame for further use.
 #'
 #' @keywords internal
 rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
-                         kernel, fitselect) {
+                         kernel, fitselect, vce) {
 
   N <- Nl + Nr; Nh <- Nlh + Nrh
   Y <- matrix(Y, ncol=1); X <- matrix(X, ncol=1)
@@ -375,14 +377,17 @@ rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
   colnames(out) <- c("hat", "jackknife", "plugin", "s")
   rownames(out) <- c("l", "r", "diff", "sum")
 
-  Sh <- t(Xp) %*% diag(W) %*% Xp
-  Sinv <- try(solve(Sh), silent=TRUE)
+  # old: too slow when the sample size is large constructing diagonal matrix
+  # Sh <- t(Xp) %*% diag(W) %*% Xp
+  XpW <- sweep(Xp, MARGIN=1, STATS=W, FUN="*")
+  Sinv <- try(solve(crossprod(XpW, Xp)), silent=TRUE)
   if (typeof(Sinv) == "character") {
     return(data.frame(out))
   }
 
-  XpWY <- t(Xp) %*% diag(W) %*% Y
-  b <- solve(Hp) %*% Sinv %*% XpWY
+  # old: too slow when the sample size is large constructing diagonal matrix
+  # XpWY <- t(Xp) %*% diag(W) %*% Y
+  b <- solve(Hp) %*% Sinv %*% crossprod(XpW, Y)
 
   if (fitselect == "restricted") {
     out[1, 1] <- b[2]; out[2, 1] <- b[3]; out[3, 1] <- b[3] - b[2]; out[4, 1] <- b[3] + b[2];
@@ -393,36 +398,42 @@ rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
   }
 
   # Jackknife
-  XpW <- diag(W) %*% Xp; L <- matrix(NA, nrow=dim(Xp)[1], ncol=dim(Xp)[2])
-  L[1, ] <- colSums(XpW[2:Nh, ]) / (N - 1)
-  for (i in 2:Nh) {
-    L[i, ] <- L[i-1, ] - XpW[i, ] / (N - 1)
-  }
-  V = solve(Hp) %*% Sinv %*% (t(L) %*% L) %*% Sinv %*% solve(Hp)
-  if (fitselect == "restricted") {
-    out[1, 2] <- V[2, 2]; out[2, 2] <- V[3, 3]; out[3, 2] <- V[2, 2] + V[3, 3] - 2 * V[2,3]; out[4, 2] <- V[2, 2] + V[3, 3] + 2 * V[2,3]
-  } else {
-    out[1, 2] <- V[3, 3]; out[2, 2] <- V[4, 4]; out[3, 2] <- V[3, 3] + V[4, 4] - 2 * V[3,4]; out[4, 2] <- V[3, 3] + V[4, 4] + 2 * V[3,4]
+  if (vce == "jackknife") {
+    L <- matrix(NA, nrow=dim(Xp)[1], ncol=dim(Xp)[2])
+    L[1, ] <- colSums(XpW[2:Nh, ]) / (N - 1)
+    for (i in 2:Nh) {
+      L[i, ] <- L[i-1, ] - XpW[i, ] / (N - 1)
+    }
+    V = solve(Hp) %*% Sinv %*% (t(L) %*% L) %*% Sinv %*% solve(Hp)
+    if (fitselect == "restricted") {
+      out[1, 2] <- V[2, 2]; out[2, 2] <- V[3, 3]; out[3, 2] <- V[2, 2] + V[3, 3] - 2 * V[2,3]; out[4, 2] <- V[2, 2] + V[3, 3] + 2 * V[2,3]
+    } else {
+      out[1, 2] <- V[3, 3]; out[2, 2] <- V[4, 4]; out[3, 2] <- V[3, 3] + V[4, 4] - 2 * V[3,4]; out[4, 2] <- V[3, 3] + V[4, 4] + 2 * V[3,4]
+    }
   }
 
+
   # plugin
-  if (fitselect=="unrestricted") {
-    S <- Sgenerate(p, low=0, up=1, kernel=kernel)
-    G <- Ggenerate(p, low=0, up=1, kernel=kernel)
-    V <- solve(S) %*% G %*% solve(S)
-    out[1, 3] <- out[1, 1] * V[2, 2] / (N * hl);  out[2, 3] <- out[2, 1] * V[2, 2] / (N * hr); out[3, 3] <- out[4, 3] <- out[1, 3] + out[2, 3]
-  } else {
-    S <- Splusgenerate(p=p, kernel=kernel)
-    G <- Gplusgenerate(p=p, kernel=kernel)
-    Psi <- Psigenerate(p=p)
-    Sm <- Psi %*% S %*% Psi; Gm <- Psi %*% G %*% Psi
-    V <- solve(out[1, 1] * Sm + out[2, 1] * S) %*% (out[1, 1]^3 * Gm + out[2, 1]^3 * G) %*% solve(out[1, 1] * Sm + out[2, 1] * S)
-    out[1, 3] <- V[2, 2] / (N * hl); out[2, 3] <- V[3, 3] / (N * hl); out[3, 3] <- (V[2, 2] + V[3, 3] - 2 * V[2,3]) / (N * hl); out[4, 3] <- (V[2, 2] + V[3, 3] + 2 * V[2,3]) / (N * hl)
+  if (vce == "plugin") {
+    if (fitselect=="unrestricted") {
+      S <- Sgenerate(p, low=0, up=1, kernel=kernel)
+      G <- Ggenerate(p, low=0, up=1, kernel=kernel)
+      V <- solve(S) %*% G %*% solve(S)
+      out[1, 3] <- out[1, 1] * V[2, 2] / (N * hl);  out[2, 3] <- out[2, 1] * V[2, 2] / (N * hr); out[3, 3] <- out[4, 3] <- out[1, 3] + out[2, 3]
+    } else {
+      S <- Splusgenerate(p=p, kernel=kernel)
+      G <- Gplusgenerate(p=p, kernel=kernel)
+      Psi <- Psigenerate(p=p)
+      Sm <- Psi %*% S %*% Psi; Gm <- Psi %*% G %*% Psi
+      V <- solve(out[1, 1] * Sm + out[2, 1] * S) %*% (out[1, 1]^3 * Gm + out[2, 1]^3 * G) %*% solve(out[1, 1] * Sm + out[2, 1] * S)
+      out[1, 3] <- V[2, 2] / (N * hl); out[2, 3] <- V[3, 3] / (N * hl); out[3, 3] <- (V[2, 2] + V[3, 3] - 2 * V[2,3]) / (N * hl); out[4, 3] <- (V[2, 2] + V[3, 3] + 2 * V[2,3]) / (N * hl)
+    }
   }
+
 
   for (i in 1:4) {
     for (j in 2:3) {
-      if (out[i, j] < 0) { out[i,j] <- NA }
+      if (!is.na(out[i, j])) if (out[i, j] < 0) { out[i,j] <- NA }
     }
   }
 

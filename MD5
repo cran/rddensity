@@ -1,9 +1,9 @@
-1b43e59e2a7b4ccaf3dc114982fe04de *DESCRIPTION
+cd1f8a4d34febe477bb4bc77c442cb38 *DESCRIPTION
 cf405f2d8816ae3ecc18d366b62089dc *NAMESPACE
-a39a55a0e0f029253f8bf70c2e9229ac *R/rdbwdensity.R
+2b58356af3df43a5c370f3b2480c8d90 *R/rdbwdensity.R
 6a2c898468520805ddea4fa04a20e617 *R/rddensity-package.R
-48fe4d2f027cd9004e1eba5c55cbeeae *R/rddensity.R
-35e7ddd4f4f74572e58482458f612ab5 *R/rddensity_fun.R
+ef5a7d621886da92bbda52d647172cf0 *R/rddensity.R
+3eb83552e7b873989772e9c870a1884e *R/rddensity_fun.R
 5b037eb4e7268d523aaa1121025e594f *R/rddensity_senate.R
 187a3041c2502ee1f0d692b80a533fd6 *R/rdplotdensity.R
 bf6c4d4d4524d06cf78f2de1d9a344a5 *data/rddensity_senate.RData
@@ -25,7 +25,7 @@ e0e3c1b05d588c0941202162aafc58b3 *man/Sminusgenerate.Rd
 d5275998cff9709683350e7911738f79 *man/rddensity-package.Rd
 7bdc42a14174eac85566b1d4b2087783 *man/rddensity.Rd
 60e4e9f750a8c4239d3a7d3b65defca4 *man/rddensity_H.Rd
-4d74aad58fcaaa8409c893ae37665623 *man/rddensity_fV.Rd
+67b2852095fc909c97399b377ee90369 *man/rddensity_fV.Rd
 57a7ade7fb0b2c2118da75c6508ba08a *man/rddensity_senate.Rd
 fc5c2bb6189695320b445b74d4121014 *man/rdplotdensity.Rd
 6886928ad4b017ac0f8ab587749931bb *man/summary.CJMrdbwdensity.Rd

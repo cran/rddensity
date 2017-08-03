@@ -193,12 +193,12 @@ rddensity <- function(X, c=0, p=2, q=0, kernel="", fitselect="", h=c(), bwselect
   ################################################################################
   # estimation
   ################################################################################
-  fV_q <- rddensity_fV(Y=Yh, X=Xh, Nl=Nl, Nr=Nr, Nlh=Nlh, Nrh=Nrh, hl=hl*hscale, hr=hr*hscale, p=q, s=1, kernel=kernel, fitselect=fitselect)
+  fV_q <- rddensity_fV(Y=Yh, X=Xh, Nl=Nl, Nr=Nr, Nlh=Nlh, Nrh=Nrh, hl=hl*hscale, hr=hr*hscale, p=q, s=1, kernel=kernel, fitselect=fitselect, vce=vce)
   T_asy <- fV_q[3, 1] / sqrt(fV_q[3, 3]); T_jk <- fV_q[3, 1] / sqrt(fV_q[3, 2])
   p_asy <- pnorm(abs(T_asy), lower.tail=FALSE) * 2; p_jk <- pnorm(abs(T_jk), lower.tail=FALSE) * 2
 
   if (all) {
-    fV_p <- rddensity_fV(Y=Yh, X=Xh, Nl=Nl, Nr=Nr, Nlh=Nlh, Nrh=Nrh, hl=hl*hscale, hr=hr*hscale, p=p, s=1, kernel=kernel, fitselect=fitselect)
+    fV_p <- rddensity_fV(Y=Yh, X=Xh, Nl=Nl, Nr=Nr, Nlh=Nlh, Nrh=Nrh, hl=hl*hscale, hr=hr*hscale, p=p, s=1, kernel=kernel, fitselect=fitselect, vce=vce)
     T_asy_p <- fV_p[3, 1] / sqrt(fV_p[3, 3]); T_jk_p <- fV_p[3, 1] / sqrt(fV_p[3, 2])
     p_asy_p <- pnorm(abs(T_asy_p), lower.tail=FALSE) * 2; p_jk_p <- pnorm(abs(T_jk_p), lower.tail=FALSE) * 2
 
