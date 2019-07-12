@@ -1,8 +1,8 @@
 ################################################################################
-#' @title rddensity: Manipulation Testing Using Local-Polynomial Density Estimation
+#' @title rddensity: Manipulation Testing Based on Density Discontinuity
 #'
 #' @description Density discontinuity test (a.k.a. manipulation test) is commonly employed in
-#'   regression discontinuity designs and other treatment effect settings to detect whether there is evidence suggesting
+#'   regression discontinuity designs and other program evaluation settings to detect whether there is evidence of
 #'   perfect self-selection (manipulation) around a cutoff where a treatment/policy
 #'   assignment changes.
 #'
@@ -16,18 +16,18 @@
 #'   useful for analysis of RD designs, visit \url{https://sites.google.com/site/rdpackages}.
 #'
 #' @author
-#' Matias D. Cattaneo, University of Michigan.  \email{cattaneo@umich.edu}.
+#' Matias D. Cattaneo, Princeton University  \email{cattaneo@princeton.edu}.
 #'
-#' Michael Jansson, University of California, Berkeley.  \email{mjansson@econ.berkeley.edu}.
+#' Michael Jansson, University of California Berkeley.  \email{mjansson@econ.berkeley.edu}.
 #'
-#' Xinwei Ma (maintainer), University of Michigan. \email{xinweima@umich.edu}.
+#' Xinwei Ma (maintainer), University of California San Diego. \email{x1ma@ucsd.edu}.
 #'
 #' @references
-#' M.D. Cattaneo, B. Frandsen, and R. Titiunik. (2015).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Frandsen-Titiunik_2015_JCI.pdf}{Randomization Inference in the Regression Discontinuity Design: An Application to the Study of Party Advantages in the U.S. Senate}. \emph{Journal of Causal Inference} 3(1): 1-24.
+#' M.D. Cattaneo, B. Frandsen, and R. Titiunik. (2015).  \href{https://sites.google.com/site/rdpackages/rdlocrand/Cattaneo-Frandsen-Titiunik_2015_JCI.pdf}{Randomization Inference in the Regression Discontinuity Design: An Application to the Study of Party Advantages in the U.S. Senate}. \emph{Journal of Causal Inference} 3(1): 1-24.
 #'
-#' M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Polynomial Density Estimators}. Working Paper, University of Michigan.
+#' M.D. Cattaneo, M. Jansson and X. Ma. (2018). \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}.  \emph{Stata Journal} 18(1): 234-261.
 #'
-#' M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
+#' M.D. Cattaneo, M. Jansson and X. Ma. (2019).  \href{https://arxiv.org/abs/1811.11512}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
 #'
 #' J. McCrary. (2008). Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test. \emph{Journal of Econometrics} 142(2): 698-714.
 #'

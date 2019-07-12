@@ -4,11 +4,12 @@
 \alias{rdplotdensity}
 \title{Density Plot}
 \usage{
-rdplotdensity(rdd, X, plotRange = NULL, plotN = 10, plotGrid = c("es",
-  "qs"), alpha = 0.05, type = NULL, CItype = NULL, title = "",
-  xlabel = "", ylabel = "", lty = NULL, lwd = NULL, lcol = NULL,
-  pty = NULL, pwd = NULL, pcol = NULL, CIshade = NULL, CIcol = NULL,
-  legendTitle = NULL, legendGroups = NULL)
+rdplotdensity(rdd, X, plotRange = NULL, plotN = 10,
+  plotGrid = c("es", "qs"), alpha = 0.05, type = NULL,
+  CItype = NULL, title = "", xlabel = "", ylabel = "",
+  lty = NULL, lwd = NULL, lcol = NULL, pty = NULL, pwd = NULL,
+  pcol = NULL, CIshade = NULL, CIcol = NULL, legendTitle = NULL,
+  legendGroups = NULL)
 }
 \arguments{
 \item{rdd}{Object returned by \code{\link{rddensity}}}
@@ -96,33 +97,37 @@ accordingly.}
 }
 \description{
 \code{rdplotdensity} constructs density plot near the cutoff. It is based on the
-  local polynomial density estimators proposed in \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Cattaneo, Jansson and Ma (2017a)}.
+  local polynomial density estimator proposed in Cattaneo, Jansson and Ma (2019).
 
 Companion command: \code{\link{rddensity}} for manipulation testing.
-  A companion \code{Stata} package is described in \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{Cattaneo, Jansson and Ma (2017b)}.
+  A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
 
 Related Stata and R packages useful for inference in regression discontinuity (RD)
   designs are described at \url{https://sites.google.com/site/rdpackages}.
 }
 \examples{
-# density being discontinuous
+# Generate a random sample with a discontinuous density
 set.seed(42)
 x <- rnorm(2000, mean = -0.5); x[x>0] <- x[x>0] * 2
+
+# Estimation
 rdd <- rddensity(X = x)
+
+# Plot
 plot <- rdplotdensity(rdd, x, plotRange = c(-2, 2), plotN = 25)
 }
 \references{
-M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Polynomial Density Estimators}. Working Paper, University of Michigan.
+M.D. Cattaneo, M. Jansson and X. Ma. (2018). \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}.  \emph{Stata Journal} 18(1): 234-261.
 
-M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
+M.D. Cattaneo, M. Jansson and X. Ma. (2019).  \href{https://arxiv.org/abs/1811.11512}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
 }
 \seealso{
 \code{\link{rddensity}}
 }
 \author{
-Matias D. Cattaneo, University of Michigan.  \email{cattaneo@umich.edu}.
+Matias D. Cattaneo, Princeton University  \email{cattaneo@princeton.edu}.
 
-Michael Jansson, University of California, Berkeley.  \email{mjansson@econ.berkeley.edu}.
+Michael Jansson, University of California Berkeley.  \email{mjansson@econ.berkeley.edu}.
 
-Xinwei Ma (maintainer), University of Michigan. \email{xinweima@umich.edu}.
+Xinwei Ma (maintainer), University of California San Diego. \email{x1ma@ucsd.edu}.
 }

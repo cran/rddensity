@@ -1,10 +1,4 @@
 ################################################################################
-# rddensity R PACKAGE -- rddensity -- Constants
-# Authors: Matias D. Cattaneo, Michael Jansson, Xinwei Ma
-################################################################################
-# version 0.1 Mar-11-2017
-
-################################################################################
 #' Internal function, generate matrices.
 #'
 #' \code{Sgenerate} generates a matrix.
@@ -571,7 +565,3 @@ rddensity_H <- function(x, p){
   if (p==10) out = x^10 - 45*x^8 + 630*x^6 - 3150*x^4 + 4725*x^2 - 945
   return(out)
 }
-
-
-
-

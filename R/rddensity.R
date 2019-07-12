@@ -1,13 +1,13 @@
 ################################################################################
-#' @title Manipulation Testing Using Local-Polynomial Density Estimation
+#' @title Manipulation Testing Using Local Polynomial Density Estimation
 #'
 #' @description \code{rddensity} implements manipulation testing procedures using the local
-#'   polynomial density estimators proposed in \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Cattaneo, Jansson and Ma (2017a)}.
+#'   polynomial density estimator proposed in Cattaneo, Jansson and Ma (2019).
 #'   For a review on manipulation testing see McCrary (2008).
 #'
 #' Companion command: \code{\link{rdbwdensity}} for data-driven bandwidth selection, and
 #'   \code{\link{rdplotdensity}} for density plot.
-#'   A companion \code{Stata} package is described in \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{Cattaneo, Jansson and Ma (2017b)}.
+#'   A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
 #'
 #' Related Stata and R packages useful for inference in regression discontinuity (RD)
 #'   designs are described at \url{https://sites.google.com/site/rdpackages}.
@@ -71,27 +71,28 @@
 #' \item{X_max}{\code{left}/\code{right}: the largest observation to the left/right of the cutoff.}
 #'
 #' @references
-#' M. D. Cattaneo, M. Jansson and X. Ma. (2017a).  \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_LocPolDensity.pdf}{Simple Local Polynomial Density Estimators}. Working Paper, University of Michigan.
+#' M.D. Cattaneo, M. Jansson and X. Ma. (2018). \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}.  \emph{Stata Journal} 18(1): 234-261.
 #'
-#' M. D. Cattaneo, M. Jansson and X. Ma. (2017b). \href{http://www-personal.umich.edu/~cattaneo/papers/Cattaneo-Jansson-Ma_2017_Stata.pdf}{rddensity: Manipulation Testing based on Density Discontinuity}. Working Paper, University of Michigan.
+#' M.D. Cattaneo, M. Jansson and X. Ma. (2019).  \href{https://arxiv.org/abs/1811.11512}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
 #'
 #' J. McCrary. (2008). Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test. \emph{Journal of Econometrics} 142(2): 698-714.
 #'
 #' @author
-#' Matias D. Cattaneo, University of Michigan.  \email{cattaneo@umich.edu}.
+#' Matias D. Cattaneo, Princeton University  \email{cattaneo@princeton.edu}.
 #'
-#' Michael Jansson, University of California, Berkeley.  \email{mjansson@econ.berkeley.edu}.
+#' Michael Jansson, University of California Berkeley.  \email{mjansson@econ.berkeley.edu}.
 #'
-#' Xinwei Ma (maintainer), University of Michigan. \email{xinweima@umich.edu}.
+#' Xinwei Ma (maintainer), University of California San Diego. \email{x1ma@ucsd.edu}.
 #'
 #' @seealso \code{\link{rdbwdensity}}, \code{\link{rdplotdensity}}
 #'
 #' @examples
-#' # density being continuous
+#' # Continuous Density
 #' set.seed(42)
 #' x <- rnorm(2000, mean = -0.5)
 #' summary(rddensity(X = x, vce="jackknife"))
-#' # density being discontinuous
+#'
+#' # Discontinuous density
 #' x[x>0] <- x[x>0] * 2
 #' summary(rddensity(X = x, vce="jackknife"))
 #'
@@ -134,6 +135,14 @@ rddensity <- function(X, c=0, p=2, q=0, kernel="", fitselect="", h=c(), bwselect
     stop("No more than two bandwidths are accepted.")
   }
 
+  ################################################################################
+  # missing value handling
+  ################################################################################
+  X <- as.vector(X)
+  if (any(is.na(X))) {
+    warning(paste(sum(is.na(X)), " missing ", switch((sum(is.na(X))>1)+1, "observation is", "observations are"), " ignored.\n", sep=""))
+    X <- X[!is.na(X)]
+  }
   ################################################################################
   # sample sizes
   ################################################################################
