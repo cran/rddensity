@@ -4,8 +4,7 @@
 \alias{h_opt_density}
 \title{Internal function, calculates theoretical optimal bandwidth.}
 \usage{
-h_opt_density(x, p, N, dgp_F1, dgp_Fp1, f_low, f_up,
-  kernel = "triangular")
+h_opt_density(x, p, N, dgp_F1, dgp_Fp1, f_low, f_up, kernel = "triangular")
 }
 \arguments{
 \item{x}{Numeric vector or data matrix, the running variable.}

@@ -4,8 +4,15 @@
 \alias{h_opt_density_res}
 \title{Internal function, calculates theoretical optimal bandwidth.}
 \usage{
-h_opt_density_res(p, N, dgp_F1_l, dgp_F1_r, dgp_Fp1_l, dgp_Fp1_r,
-  kernel = "triangular")
+h_opt_density_res(
+  p,
+  N,
+  dgp_F1_l,
+  dgp_F1_r,
+  dgp_Fp1_l,
+  dgp_Fp1_r,
+  kernel = "triangular"
+)
 }
 \arguments{
 \item{p}{Integer, polynomial order.}

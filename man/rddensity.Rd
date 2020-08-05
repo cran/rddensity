@@ -4,50 +4,110 @@
 \alias{rddensity}
 \title{Manipulation Testing Using Local Polynomial Density Estimation}
 \usage{
-rddensity(X, c = 0, p = 2, q = 0, kernel = "", fitselect = "",
-  h = c(), bwselect = "", vce = "", all = FALSE)
+rddensity(
+  X,
+  c = 0,
+  p = 2,
+  q = 0,
+  fitselect = "",
+  kernel = "",
+  vce = "",
+  massPoints = TRUE,
+  h = c(),
+  bwselect = "",
+  all = FALSE,
+  regularize = TRUE,
+  nLocalMin = NULL,
+  nUniqueMin = NULL,
+  bino = TRUE,
+  binoW = NULL,
+  binoN = NULL,
+  binoWStep = NULL,
+  binoNStep = NULL,
+  binoNW = 10,
+  binoP = 0.5
+)
 }
 \arguments{
-\item{X}{Numeric vector or one dimensional matrix / data frame, the running variable.}
+\item{X}{Numeric vector or one dimensional matrix/data frame, the running variable.}
 
 \item{c}{Numeric, specifies the threshold or cutoff value in the support of \code{X},
-which determes the two samples (e.g., control and treatment units in RD settings).  Default
-is \code{0}.}
+which determines the two samples (e.g., control and treatment units in RD settings).
+Default is \code{0}.}
 
-\item{p}{Integer, specifies the order of the local-polynomial used to construct the density
-point estimators.  Default is \code{2} (local quadratic approximation).}
+\item{p}{Nonnegative integer, specifies the local polynomial order used to construct
+the density estimators. Default is \code{2} (local quadratic approximation).}
 
-\item{q}{Integer, specifies the order of the local-polynomial used to construct the
-bias-corrected density point estimators.  Default is \code{p+1} (local cubic approximation).}
+\item{q}{Nonnegative integer, specifies the local polynomial order used to construct
+the bias-corrected density estimators. Default is \code{p+1} (local cubic approximation
+for default \code{p=2}).}
 
-\item{kernel}{String, specifies the kernel function used to construct the local-polynomial
-estimator(s). Options are: \code{"triangular"}, \code{"epanechnikov"}, and \code{"uniform"}. Default is
-\code{"triangular"}.}
+\item{fitselect}{String, specifies the density estimation method.
+\code{"unrestricted"} for density estimation without any restrictions (two-sample,
+unrestricted inference). This is the default option.
+\code{"restricted"} for density estimation assuming equal distribution function and
+higher-order derivatives.}
 
-\item{fitselect}{String, specifies whether restrictions should be imposed. Options are:
-\code{"unrestricted"} for density estimation without any restrictions (two-sample, unrestricted
-inference). This is the default option. \code{"restricted"} for density estimation assuming
-equal c.d.f. and higher-order derivatives.}
+\item{kernel}{String, specifies the kernel function used to construct the local
+polynomial estimators.
+\code{"triangular"}: \code{K(u)=(1-|u|)*(|u|<=1)}. This is the
+default option.
+\code{"epanechnikov"}: \code{K(u) = 0.75*(1-u^2)*(|u|<=1)}.
+\code{"uniform"}: \code{K(u) = 0.5 * (|u|<=1)}.}
 
-\item{h}{Numeric, specifies the bandwidth used to construct the density estimators on the
-two sides of the cutoff. If not specified, the bandwidth is computed by the companion
-command \code{\link{rdbwdensity}}. If two bandwidths are specified, the first bandwidth
-is used for the data below the cutoff and the second bandwidth is used for the data above the cutoff.}
+\item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator.
+\code{"plugin"} for asymptotic plug-in standard errors.
+\code{"jackknife"} for jackknife standard errors. This is the default option.}
 
-\item{bwselect}{String, specifies the bandwidth selection procedure to be used. Options are:
-\code{"each"} bandwidth selection based on MSE of each density separately (two distinct bandwidths).
-\code{"diff"} bandwidth selection based on MSE of difference of densities (one common bandwidth).
-\code{"sum"} bandwidth selection based on MSE of sum of densities (one common bandwidth).
-\code{"comb"} (this is the default option) bandwidth is selected as a combination of the alternatives above: for \code{fitselect = "unrestricted"},
-it selects \code{median(each,diff,sum)}; for \code{fitselect = "restricted"}, it selects \code{min(diff,sum)}.}
+\item{massPoints}{\code{TRUE} (default) or \code{FALSE}, specifies whether to adjust for
+mass points in the data.}
 
-\item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
-\code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors. This
-is the default option.}
+\item{h}{Numeric, specifies the bandwidth used to construct the density estimators on the two
+sides of the cutoff.  If not specified, the bandwidth h is computed by the companion command
+\code{\link{rdbwdensity}}  If two bandwidths are specified, the first bandwidth is used
+for the data below the cutoff and the second bandwidth is used for the data above the cutoff.}
 
-\item{all}{Boolean, if specified, rddensity reports two testing procedures (given choices \code{fitselect}
-and \code{bwselect}): Conventional test statistic (not valid when using MSE-optimal bandwidth choice).
-Robust bias-corrected statistic.}
+\item{bwselect}{String, specifies the bandwidth selection procedure to be used.
+\code{"each"} based on MSE of each density estimator separately (two distinct bandwidths, \code{hl} and \code{hr}).
+\code{"diff"} based on MSE of difference of two density estimators (one common bandwidth, \code{hl=hr}).
+\code{"sum"} based on MSE of sum of two density estimators (one common bandwidth, \code{hl=hr}).
+\code{"comb"} bandwidth is selected as a combination of the alternatives above. This is the default option.
+For \code{fitselect="unrestricted"}, it selects \code{median(each,diff,sum)}. For \code{fitselect = "restricted"},
+it selects \code{min(diff,sum)}.}
+
+\item{all}{\code{TRUE} or \code{FALSE} (default), if specified, will report two
+testing procedures: conventional test statistic (not valid when using MSE-optimal bandwidth choice)
+and robust bias-corrected statistic.}
+
+\item{regularize}{\code{TRUE} (default) or \code{FALSE}, specifies whether to conduct local sample size checking.
+When set to \code{TRUE}, the bandwidth is chosen such that the local region includes
+at least \code{nLocalMin} observations and at least \code{nUniqueMin} unique observations.}
+
+\item{nLocalMin}{Nonnegative integer, specifies the minimum number of observations in each local neighborhood.
+This option will be ignored if set to \code{0}, or if \code{regularize=FALSE} is used. Default is \code{20+p+1}.}
+
+\item{nUniqueMin}{Nonnegative integer, specifies the minimum number of unique observations in
+each local neighborhood. This option will be ignored if set to \code{0}, or if \code{regularize=FALSE} is used.
+Default is \code{20+p+1}.}
+
+\item{bino}{\code{TRUE} (default) or \code{FALSE}, specifies whether to conduct binomial tests. By default,
+the initial (smallest) window contains 20 observations, and its length is also used as the increment
+for subsequent windows. This feature is based on the \code{\link{binom.test}} function.}
+
+\item{binoW}{Numeric, specifies the half length(s) of the initial window. If two values are provided, they will
+be used for the data below and above the cutoff separately.}
+
+\item{binoN}{Nonnegative integer, specifies the number of observations (closest to the cutoff) used for
+the binomial test. This option will be ignored if \code{binoW} is provided.}
+
+\item{binoWStep}{Numeric, specifies the increment in half length(s).}
+
+\item{binoNStep}{Nonnegative integer, specifies the increment in sample size.
+This option will be ignored if \code{binoWStep} is provided.}
+
+\item{binoNW}{Nonnegative integer, specifies the total number of windows. Default is \code{10}.}
+
+\item{binoP}{Numeric, specifies the null hypothesis of the binomial test. Default is \code{0.5}.}
 }
 \value{
 \item{hat}{\code{left}/\code{right}: density estimate to the left/right of cutoff; \code{diff}: difference in
@@ -69,41 +129,69 @@ Robust bias-corrected statistic.}
   \code{eff_left}/\code{eff_right}: effective sample size to the left/right of the cutoff (this depends
   on the bandwidth).}
 \item{h}{\code{left}/\code{right}: bandwidth used to the left/right of the cutoff.}
-\item{opt}{Collects the options used, includes: \code{fitselect}, \code{kernel}, \code{bwselectl},
-  \code{bwselect}, \code{hscale}, \code{vce}, \code{c}, \code{p}, \code{q}, \code{all}.
-  See options for \code{rddensity}.}
+\item{opt}{Options passed to the function.}
+\item{bino}{Binomial test results. \code{leftWindow}/\code{rightWindow}: window lengths.
+   \code{leftN}/\code{rightN}: number of observations. \code{pval}: p-values.}
 \item{X_min}{\code{left}/\code{right}: the samllest observation to the left/right of the cutoff.}
 \item{X_max}{\code{left}/\code{right}: the largest observation to the left/right of the cutoff.}
 }
 \description{
-\code{rddensity} implements manipulation testing procedures using the local
-  polynomial density estimator proposed in Cattaneo, Jansson and Ma (2019).
-  For a review on manipulation testing see McCrary (2008).
+\code{rddensity} implements manipulation testing procedures using the
+  local polynomial density estimators proposed in Cattaneo, Jansson and Ma (2020a),
+  and implements graphical procedures with valid confidence bands using the results
+  in Cattaneo, Jansson and Ma (2020b,c).  In addition, the command provides complementary
+  manipulation testing based on finite sample exact binomial testing following the
+  esults in Cattaneo, Frandsen and Titiunik (2015) and Cattaneo, Frandsen and
+  Vazquez-Bare (2017). For an introduction to manipulation testing see McCrary (2008).
 
-Companion command: \code{\link{rdbwdensity}} for data-driven bandwidth selection, and
-  \code{\link{rdplotdensity}} for density plot.
-  A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
+ A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
+
+Companion commands: \code{\link{rdbwdensity}} for data-driven bandwidth selection, and
+  \code{\link{rdplotdensity}} for density plots.
 
 Related Stata and R packages useful for inference in regression discontinuity (RD)
-  designs are described at \url{https://sites.google.com/site/rdpackages}.
+  designs are described in the website: \url{https://sites.google.com/site/rdpackages}.
 }
 \examples{
-# Continuous Density
+### Continuous Density
 set.seed(42)
 x <- rnorm(2000, mean = -0.5)
-summary(rddensity(X = x, vce="jackknife"))
+rdd <- rddensity(X = x, vce = "jackknife")
+summary(rdd)
 
-# Discontinuous density
-x[x>0] <- x[x>0] * 2
-summary(rddensity(X = x, vce="jackknife"))
+### Bandwidth selection using rdbwdensity()
+rddbw <- rdbwdensity(X = x, vce = "jackknife")
+summary(rddbw)
+
+### Plotting using rdplotdensity()
+# 1. From -2 to 2 with 25 evaluation points at each side
+plot1 <- rdplotdensity(rdd, x, plotRange = c(-2, 2), plotN = 25)
+
+# 2. Plotting a uniform confidence band
+set.seed(42) # fix the seed for simulating critical values
+plot2 <- rdplotdensity(rdd, x, plotRange = c(-2, 2), plotN = 25, CIuniform = TRUE)
+
+### Density discontinuity at 0
+x[x > 0] <- x[x > 0] * 2
+rdd2 <- rddensity(X = x, vce = "jackknife")
+summary(rdd2)
+plot3 <- rdplotdensity(rdd2, x, plotRange = c(-2, 2), plotN = 25)
 
 }
 \references{
-M.D. Cattaneo, M. Jansson and X. Ma. (2018). \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}.  \emph{Stata Journal} 18(1): 234-261.
+Cattaneo, M. D., B. Frandsen, and R. Titiunik. 2015. \href{https://sites.google.com/site/rdpackages/rdlocrand/Cattaneo-Frandsen-Titiunik_2015_JCI.pdf}{Randomization Inference in the Regression Discontinuity Design: An Application to the Study of Party Advantages in the U.S. Senate.} \emph{Journal of Causal Inference} 3(1): 1-24.
 
-M.D. Cattaneo, M. Jansson and X. Ma. (2019).  \href{https://arxiv.org/abs/1811.11512}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
+Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
 
-J. McCrary. (2008). Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test. \emph{Journal of Econometrics} 142(2): 698-714.
+Cattaneo, M. D., M. Jansson, and X. Ma. 2020a. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
+
+Cattaneo, M. D., M. Jansson, and X. Ma. 2020b. \href{https://sites.google.com/site/nppackages/lpdensity/Cattaneo-Jansson-Ma_2020_JoE.pdf}{Local Regression Distribution Estimators}. Working paper.
+
+Cattaneo, M. D., M. Jansson, and X. Ma. 2020c. \href{https://sites.google.com/site/nppackages/lpdensity/Cattaneo-Jansson-Ma_2020_JSS.pdf}{lpdensity: Local Polynomial Density Estimation and Inference}. Working paper.
+
+Cattaneo, M. D., R. Titiunik and G. Vazquez-Bare. 2017. \href{https://sites.google.com/site/rdpackages/rdlocrand/Cattaneo-Titiunik-VazquezBare_2017_JPAM.pdf}{Comparing Inference Approaches for RD Designs: A Reexamination of the Effect of Head Start on Child Mortality}. \emph{Journal of Policy Analysis and Management} 36(3): 643-681.
+
+McCrary, J. 2008. \href{https://doi.org/10.1016/j.jeconom.2007.05.005}{Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test}. \emph{Journal of Econometrics} 142(2): 698-714.
 }
 \seealso{
 \code{\link{rdbwdensity}}, \code{\link{rdplotdensity}}

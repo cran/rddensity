@@ -2,64 +2,95 @@
 % Please edit documentation in R/rdbwdensity.R
 \name{rdbwdensity}
 \alias{rdbwdensity}
-\title{Bandwidth Selection for Manipulation Testing Using Local Polynomial Density Estimation}
+\title{Bandwidth Selection for Manipulation Testing}
 \usage{
-rdbwdensity(X, c = 0, p = 2, kernel = "", fitselect = "",
-  vce = "")
+rdbwdensity(
+  X,
+  c = 0,
+  p = 2,
+  fitselect = "",
+  kernel = "",
+  vce = "",
+  massPoints = TRUE,
+  regularize = TRUE,
+  nLocalMin = NULL,
+  nUniqueMin = NULL
+)
 }
 \arguments{
-\item{X}{Numeric vector or one dimensional matrix / data frame, the running variable.}
+\item{X}{Numeric vector or one dimensional matrix/data frame, the running variable.}
 
 \item{c}{Numeric, specifies the threshold or cutoff value in the support of \code{X},
-which determes the two samples (e.g., control and treatment units in RD settings).  Default
-is \code{0}.}
+which determines the two samples (e.g., control and treatment units in RD settings).
+Default is \code{0}.}
 
-\item{p}{Integer, specifies the order of the local-polynomial used to construct the density
-point estimators.  Default is \code{2} (local quadratic approximation).}
+\item{p}{Nonnegative integer, specifies the local polynomial order used to construct
+the density estimators. Default is \code{2} (local quadratic approximation).}
 
-\item{kernel}{String, specifies the kernel function used to construct the local-polynomial
-estimator(s). Options are: \code{"triangular"}, \code{"epanechnikov"}, and \code{"uniform"}. Default is
-\code{"triangular"}.}
+\item{fitselect}{String, specifies the density estimation method.
+\code{"unrestricted"} for density estimation without any restrictions (two-sample,
+unrestricted inference). This is the default option.
+\code{"restricted"} for density estimation assuming equal distribution function and
+higher-order derivatives.}
 
-\item{fitselect}{String, specifies whether restrictions should be imposed. Options are:
-\code{"unrestricted"} for density estimation without any restrictions (two-sample, unrestricted
-inference). This is the default option. \code{"restricted"} for density estimation assuming
-equal c.d.f. and higher-order derivatives.}
+\item{kernel}{String, specifies the kernel function used to construct the local
+polynomial estimators.
+\code{"triangular"}: \code{K(u)=(1-|u|)*(|u|<=1)}. This is the
+default option.
+\code{"epanechnikov"}: \code{K(u) = 0.75*(1-u^2)*(|u|<=1)}.
+\code{"uniform"}: \code{K(u) = 0.5 * (|u|<=1)}.}
 
-\item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
-\code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors. This
-is the default option.}
+\item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator.
+\code{"plugin"} for asymptotic plug-in standard errors.
+\code{"jackknife"} for jackknife standard errors. This is the default option.}
+
+\item{massPoints}{\code{TRUE} (default) or \code{FALSE}, specifies whether to adjust for
+mass points in the data.}
+
+\item{regularize}{\code{TRUE} (default) or \code{FALSE}, specifies whether to conduct local sample size checking.
+When set to \code{TRUE}, the bandwidth is chosen such that the local region includes
+at least \code{nLocalMin} observations and at least \code{nUniqueMin} unique observations.}
+
+\item{nLocalMin}{Nonnegative integer, specifies the minimum number of observations in each local neighborhood.
+This option will be ignored if set to \code{0}, or if \code{regularize=FALSE} is used. Default is \code{20+p+1}.}
+
+\item{nUniqueMin}{Nonnegative integer, specifies the minimum number of unique observations in
+each local neighborhood. This option will be ignored if set to \code{0}, or if \code{regularize=FALSE} is used.
+Default is \code{20+p+1}.}
 }
 \value{
 \item{h}{Bandwidths for density discontinuity test, left and right to the cutoff, and asymptotic variance and bias.}
 \item{N}{\code{full}: full sample size; \code{left}/\code{right}: sample size to the left/right of the cutoff.}
-\item{opt}{Collects the options used, includes: \code{fitselect}, \code{kernel},
-  \code{vce}, \code{c}, \code{p}. See options for \code{rdbwdensity}.}
+\item{opt}{Options passed to the function.}
 \item{X_min}{Smallest observations to the left and right of the cutoff.}
 \item{X_max}{Largest observations to the left and right of the cutoff.}
 }
 \description{
-\code{rdbwdensity} implements several data-driven bandwidth selection methods
-  for the manipulation testing procedure of Cattaneo, Jansson and Ma (2019).
+\code{rdbwdensity} implements several data-driven bandwidth selection
+  methods useful to construct manipulation testing procedures using the local
+  polynomial density estimators proposed in Cattaneo, Jansson and Ma (2020).
 
-Companion command: \code{\link{rddensity}} for density discontinuity (manipulation)
-  testing. A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
+ A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
+
+Companion command: \code{\link{rddensity}} for manipulation (density discontinuity)
+  testing.
 
 Related Stata and R packages useful for inference in regression discontinuity (RD)
-  designs are described at \url{https://sites.google.com/site/rdpackages}.
+  designs are described in the website: \url{https://sites.google.com/site/rdpackages}.
 }
 \examples{
 # Generate a random sample
-set.seed(42); x <- rnorm(2000, mean = -0.5)
+set.seed(42)
+x <- rnorm(2000, mean = -0.5)
 
-# Construct bandwidth
+# Bandwidth selection
 summary(rdbwdensity(X = x, vce="jackknife"))
 
 }
 \references{
-M.D. Cattaneo, M. Jansson and X. Ma. (2018). \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}.  \emph{Stata Journal} 18(1): 234-261.
+Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
 
-M.D. Cattaneo, M. Jansson and X. Ma. (2019).  \href{https://arxiv.org/abs/1811.11512}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
+Cattaneo, M. D., M. Jansson, and X. Ma. 2020. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
 }
 \seealso{
 \code{\link{rddensity}}

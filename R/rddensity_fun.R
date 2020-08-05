@@ -1,4 +1,44 @@
 ################################################################################
+#' Internal function.
+#'
+#' Find unique elements and their frequencies in a numeric vector. This function
+#'   has a similar performance as the built-in R function \code{unique}.
+#'
+#' @param x Numeric vector, already sorted in ascending order.
+#'
+#' @return
+#' \item{unique}{A vector containing unique elements in \code{x}.}
+#' \item{freq}{The frequency of each element in \code{x}.}
+#' \item{index}{The last occurrence of each element in \code{x}.}
+#'
+#' @keywords internal
+rddensityUnique <- function(x) {
+  n <- length(x)
+  # if x has one or no element
+  if (n == 0) return(list(unique=NULL, freq=c(), indexFirst=c(), indexLast=c()))
+  if (n == 1) return(list(unique=x, freq=1, indexFirst=1, indexLast=1))
+
+  # else
+  uniqueIndex <- c(x[2:n] != x[1:(n-1)], TRUE)
+  unique <- x[uniqueIndex]
+  nUnique <- length(unique)
+
+  # all are distinct
+  if (nUnique == n) return(list(unique=unique, freq=rep(1,length(x)), indexFirst=1:n, indexLast=1:n))
+  # all are the same
+  if (nUnique == 1) return(list(unique=unique, freq=n, indexFirst=1, indexLast=n))
+
+  # otherwise
+  freq <- (cumsum(!uniqueIndex))[uniqueIndex]
+  freq <- freq - c(0, freq[1:(nUnique-1)]) + 1
+
+  return(list(unique=unique, freq=freq, indexFirst=c(1, ((1:n)[uniqueIndex]+1)[1:(nUnique-1)]), indexLast=(1:n)[uniqueIndex]))
+}
+
+#rddensityUnique(1:10)
+#rddensityUnique(c(1,1,2,3,3,3, 4,4,5,5,5,5,5,5))
+
+################################################################################
 #' Internal function, generate matrices.
 #'
 #' \code{Sgenerate} generates a matrix.
@@ -320,15 +360,20 @@ Psigenerate <- function(p) {
 #' @param fitselect String, the model, can be \code{restricted} or \code{unrestricted}
 #' @param vce String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
 #'   \code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors.
+#' @param massPoints Boolean, whether whether point estimates and standard errors
 #'
 #' @return Returns a data frame for further use.
 #'
 #' @keywords internal
 rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
-                         kernel, fitselect, vce) {
+                         kernel, fitselect, vce, massPoints) {
 
-  N <- Nl + Nr; Nh <- Nlh + Nrh
-  Y <- matrix(Y, ncol=1); X <- matrix(X, ncol=1)
+  N <- Nl + Nr
+  Nh <- Nlh + Nrh
+  Y <- matrix(Y, ncol=1)
+  X <- matrix(X, ncol=1)
+
+  # Construct the kernel weightings
   W <- rep(NA, Nh)
   if (kernel == "uniform") {
     W[1:Nlh] <- 1 / (2 * hl); W[(Nlh+1):Nh] <- 1 / (2 * hr)
@@ -338,6 +383,7 @@ rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
     W[1:Nlh] <- 0.75 * (1 - (X[1:Nlh]/hl)^2) / hl; W[(Nlh+1):Nh] <- 0.75 * (1 - (X[(Nlh+1):Nh]/hr)^2) / hr
   }
 
+  # Construct the design matrix and the bandwidth matrix
   if (fitselect == "restricted") {
     Xp <- matrix(NA, ncol=p+2, nrow=Nh)
     Xp[, 1] <- 1
@@ -371,38 +417,72 @@ rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
   colnames(out) <- c("hat", "jackknife", "plugin", "s")
   rownames(out) <- c("l", "r", "diff", "sum")
 
-  # old: too slow when the sample size is large constructing diagonal matrix
-  # Sh <- t(Xp) %*% diag(W) %*% Xp
+  # X'WX inverse matrix
   XpW <- sweep(Xp, MARGIN=1, STATS=W, FUN="*")
-  Sinv <- try(solve(crossprod(XpW, Xp)), silent=TRUE)
+  Sinv <- try(solve(crossprod(XpW, Xp), tol=0), silent=TRUE)
+
   if (typeof(Sinv) == "character") {
     return(data.frame(out))
   }
 
-  # old: too slow when the sample size is large constructing diagonal matrix
-  # XpWY <- t(Xp) %*% diag(W) %*% Y
+  # point estimates
   b <- solve(Hp) %*% Sinv %*% crossprod(XpW, Y)
 
+#if (s > 1) {
+  #print(Hp)
+  #print(XpW)
+  #print(b)
+  #print(Sinv)
+  #print(solve(Hp) %*% Sinv)
+#}
   if (fitselect == "restricted") {
-    out[1, 1] <- b[2]; out[2, 1] <- b[3]; out[3, 1] <- b[3] - b[2]; out[4, 1] <- b[3] + b[2];
-    out[1, 4] <- out[2, 4] <- b[s+2]; out[3, 4] <- 0; out[4, 4] <- 2 * out[1, 4]
+    out[1, 1] <- b[2]
+    out[2, 1] <- b[3]
+    out[3, 1] <- b[3] - b[2]
+    out[4, 1] <- b[3] + b[2]
+    out[1, 4] <- out[2, 4] <- b[s+2]
+    out[3, 4] <- 0
+    out[4, 4] <- 2 * out[1, 4]
   } else {
-    out[1, 1] <- b[3]; out[2, 1] <- b[4]; out[3, 1] <- b[4] - b[3]; out[4, 1] <- b[4] + b[3];
-    out[1, 4] <- b[2*s+1]; out[2, 4] <- b[2*s+2]; out[3, 4] <- out[2, 4] - out[1, 4]; out[4, 4] <- out[2, 4] + out[1, 4]
+    out[1, 1] <- b[3]
+    out[2, 1] <- b[4]
+    out[3, 1] <- b[4] - b[3]
+    out[4, 1] <- b[4] + b[3]
+    out[1, 4] <- b[2*s+1]
+    out[2, 4] <- b[2*s+2]
+    out[3, 4] <- out[2, 4] - out[1, 4]
+    out[4, 4] <- out[2, 4] + out[1, 4]
   }
 
   # Jackknife
   if (vce == "jackknife") {
-    L <- matrix(NA, nrow=dim(Xp)[1], ncol=dim(Xp)[2])
-    L[1, ] <- colSums(XpW[2:Nh, ]) / (N - 1)
-    for (i in 2:Nh) {
-      L[i, ] <- L[i-1, ] - XpW[i, ] / (N - 1)
+    L <- matrix(0, nrow=dim(Xp)[1], ncol=dim(Xp)[2])
+    # mass points correction
+    if (massPoints) {
+      XUnique     <- rddensityUnique(X)
+      freqUnique  <- XUnique$freq
+      indexUnique <- XUnique$indexFirst
+      for (jj in 1:ncol(L)) {
+        L[, jj] <- rep(((cumsum(c(0, XpW[Nh:1, jj])) / (N - 1))[Nh:1])[indexUnique], times=freqUnique)
+      }
+    } else {
+      L[1, ] <- colSums(XpW[2:Nh, ]) / (N - 1)
+      for (i in 2:Nh) {
+        L[i, ] <- L[i-1, ] - XpW[i, ] / (N - 1)
+      }
     }
+
     V = solve(Hp) %*% Sinv %*% (t(L) %*% L) %*% Sinv %*% solve(Hp)
     if (fitselect == "restricted") {
-      out[1, 2] <- V[2, 2]; out[2, 2] <- V[3, 3]; out[3, 2] <- V[2, 2] + V[3, 3] - 2 * V[2,3]; out[4, 2] <- V[2, 2] + V[3, 3] + 2 * V[2,3]
+      out[1, 2] <- V[2, 2]
+      out[2, 2] <- V[3, 3]
+      out[3, 2] <- V[2, 2] + V[3, 3] - 2 * V[2,3]
+      out[4, 2] <- V[2, 2] + V[3, 3] + 2 * V[2,3]
     } else {
-      out[1, 2] <- V[3, 3]; out[2, 2] <- V[4, 4]; out[3, 2] <- V[3, 3] + V[4, 4] - 2 * V[3,4]; out[4, 2] <- V[3, 3] + V[4, 4] + 2 * V[3,4]
+      out[1, 2] <- V[3, 3]
+      out[2, 2] <- V[4, 4]
+      out[3, 2] <- V[3, 3] + V[4, 4] - 2 * V[3,4]
+      out[4, 2] <- V[3, 3] + V[4, 4] + 2 * V[3,4]
     }
   }
 
@@ -413,14 +493,19 @@ rddensity_fV <- function(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s,
       S <- Sgenerate(p, low=0, up=1, kernel=kernel)
       G <- Ggenerate(p, low=0, up=1, kernel=kernel)
       V <- solve(S) %*% G %*% solve(S)
-      out[1, 3] <- out[1, 1] * V[2, 2] / (N * hl);  out[2, 3] <- out[2, 1] * V[2, 2] / (N * hr); out[3, 3] <- out[4, 3] <- out[1, 3] + out[2, 3]
+      out[1, 3] <- out[1, 1] * V[2, 2] / (N * hl)
+      out[2, 3] <- out[2, 1] * V[2, 2] / (N * hr)
+      out[3, 3] <- out[4, 3] <- out[1, 3] + out[2, 3]
     } else {
       S <- Splusgenerate(p=p, kernel=kernel)
       G <- Gplusgenerate(p=p, kernel=kernel)
       Psi <- Psigenerate(p=p)
       Sm <- Psi %*% S %*% Psi; Gm <- Psi %*% G %*% Psi
       V <- solve(out[1, 1] * Sm + out[2, 1] * S) %*% (out[1, 1]^3 * Gm + out[2, 1]^3 * G) %*% solve(out[1, 1] * Sm + out[2, 1] * S)
-      out[1, 3] <- V[2, 2] / (N * hl); out[2, 3] <- V[3, 3] / (N * hl); out[3, 3] <- (V[2, 2] + V[3, 3] - 2 * V[2,3]) / (N * hl); out[4, 3] <- (V[2, 2] + V[3, 3] + 2 * V[2,3]) / (N * hl)
+      out[1, 3] <- V[2, 2] / (N * hl)
+      out[2, 3] <- V[3, 3] / (N * hl)
+      out[3, 3] <- (V[2, 2] + V[3, 3] - 2 * V[2,3]) / (N * hl)
+      out[4, 3] <- (V[2, 2] + V[3, 3] + 2 * V[2,3]) / (N * hl)
     }
   }
 

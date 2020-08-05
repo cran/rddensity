@@ -4,7 +4,22 @@
 \alias{rddensity_fV}
 \title{Internal function, implements density test.}
 \usage{
-rddensity_fV(Y, X, Nl, Nr, Nlh, Nrh, hl, hr, p, s, kernel, fitselect, vce)
+rddensity_fV(
+  Y,
+  X,
+  Nl,
+  Nr,
+  Nlh,
+  Nrh,
+  hl,
+  hr,
+  p,
+  s,
+  kernel,
+  fitselect,
+  vce,
+  massPoints
+)
 }
 \arguments{
 \item{Y}{Numeric vector or data matrix, the estimated c.d.f.}
@@ -29,6 +44,8 @@ within bandwidth}
 
 \item{vce}{String, specifies the procedure used to compute the variance-covariance matrix estimator. Options are:
 \code{"plugin"} for asymptotic plug-in standard errors. \code{"jackknife"} for jackknife standard errors.}
+
+\item{massPoints}{Boolean, whether whether point estimates and standard errors}
 }
 \value{
 Returns a data frame for further use.
