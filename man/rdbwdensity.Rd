@@ -76,7 +76,7 @@ Companion command: \code{\link{rddensity}} for manipulation (density discontinui
   testing.
 
 Related Stata and R packages useful for inference in regression discontinuity (RD)
-  designs are described in the website: \url{https://sites.google.com/site/rdpackages}.
+  designs are described in the website: \url{https://rdpackages.github.io/}.
 }
 \examples{
 # Generate a random sample
@@ -88,9 +88,9 @@ summary(rdbwdensity(X = x, vce="jackknife"))
 
 }
 \references{
-Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
+Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
 
-Cattaneo, M. D., M. Jansson, and X. Ma. 2020. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
+Cattaneo, M. D., M. Jansson, and X. Ma. 2020. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, 115(531): 1449-1455.
 }
 \seealso{
 \code{\link{rddensity}}

@@ -8,7 +8,7 @@
 #' Companion command: \code{\link{rddensity}} for manipulation (density discontinuity) testing.
 #'
 #' Related Stata and R packages useful for inference in regression discontinuity (RD)
-#'   designs are described in the website: \url{https://sites.google.com/site/rdpackages}.
+#'   designs are described in the website: \url{https://rdpackages.github.io/}.
 #'
 #' @details
 #' Bias correction is only used for the construction of confidence intervals/bands, but not for point
@@ -124,17 +124,17 @@
 #' Xinwei Ma (maintainer), University of California San Diego. \email{x1ma@ucsd.edu}.
 #'
 #' @references
-#' Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018. \href{https://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. \emph{Journal of the American Statistical Association} 113(522): 767-779.
+#' Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2018. \href{https://rdpackages.github.io/references/Calonico-Cattaneo-Farrell_2018_JASA.pdf}{On the Effect of Bias Estimation on Coverage Accuracy in Nonparametric Inference}. \emph{Journal of the American Statistical Association} 113(522): 767-779.
 #'
-#' Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2020. \href{http://sites.google.com/site/nppackages/nprobust/Calonico-Cattaneo-Farrell_2020_CEopt.pdf}{Coverage Error Optimal Confidence Intervals for Local Polynomial Regression}. Working paper.
+#' Calonico, S., M. D. Cattaneo, and M. H. Farrell. 2020. \href{https://rdpackages.github.io/references/Calonico-Cattaneo-Farrell_2020_CEopt.pdf}{Coverage Error Optimal Confidence Intervals for Local Polynomial Regression}. Working paper.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020a. \href{https://sites.google.com/site/rdpackages/rddensity/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, forthcoming.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020a. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, 115(531): 1449-1455.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020b. \href{https://sites.google.com/site/nppackages/lpdensity/Cattaneo-Jansson-Ma_2020_JoE.pdf}{Local Regression Distribution Estimators}. Working paper.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020b. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JoE.pdf}{Local Regression Distribution Estimators}. Working paper.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020c. \href{https://sites.google.com/site/nppackages/lpdensity/Cattaneo-Jansson-Ma_2020_JSS.pdf}{lpdensity: Local Polynomial Density Estimation and Inference}. Working paper.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020c. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JSS.pdf}{lpdensity: Local Polynomial Density Estimation and Inference}. Working paper.
 #'
 #' @seealso \code{\link{rddensity}}
 #'
