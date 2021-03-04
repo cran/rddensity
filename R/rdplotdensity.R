@@ -2,7 +2,7 @@
 #' @title Density Plotting for Manipulation Testing
 #'
 #' @description \code{rdplotdensity} constructs density plots. It is based on the
-#'   local polynomial density estimator proposed in Cattaneo, Jansson and Ma (2020a,b).
+#'   local polynomial density estimator proposed in Cattaneo, Jansson and Ma (2020, 2021a).
 #'   A companion \code{Stata} package is described in Cattaneo, Jansson and Ma (2018).
 #'
 #' Companion command: \code{\link{rddensity}} for manipulation (density discontinuity) testing.
@@ -22,7 +22,7 @@
 #' results on centered at the point estimate confidence intervals/bands, but requires undersmoothing for valid
 #' inference (i.e., (I)MSE-optimal bandwdith for the density point estimator cannot be used).  Hence the bandwidth
 #' would need to be specified manually when \code{q=p}, and the point estimates will not be (I)MSE optimal. See
-#' Cattaneo, Jansson and Ma (2020b,c) for details, and also Calonico, Cattaneo, and Farrell (2018, 2020) for
+#' Cattaneo, Jansson and Ma (2021a,b) for details, and also Calonico, Cattaneo, and Farrell (2018, 2020) for
 #' robust bias correction methods.
 #'
 #' Sometimes the density point estimates may lie outside of the confidence intervals/bands, which can happen if
@@ -130,11 +130,11 @@
 #'
 #' Cattaneo, M. D., M. Jansson, and X. Ma. 2018. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2018_Stata.pdf}{Manipulation Testing based on Density Discontinuity}. \emph{Stata Journal} 18(1): 234-261.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020a. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, 115(531): 1449-1455.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020. \href{https://nppackages.github.io/references/Cattaneo-Jansson-Ma_2020_JASA.pdf}{Simple Local Polynomial Density Estimators}. \emph{Journal of the American Statistical Association}, 115(531): 1449-1455.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020b. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JoE.pdf}{Local Regression Distribution Estimators}. Working paper.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2021a. \href{https://nppackages.github.io/references/Cattaneo-Jansson-Ma_2021_JoE.pdf}{Local Regression Distribution Estimators}. \emph{Journal of Econometrics}, forthcoming.
 #'
-#' Cattaneo, M. D., M. Jansson, and X. Ma. 2020c. \href{https://rdpackages.github.io/references/Cattaneo-Jansson-Ma_2020_JSS.pdf}{lpdensity: Local Polynomial Density Estimation and Inference}. Working paper.
+#' Cattaneo, M. D., M. Jansson, and X. Ma. 2021b. \href{https://nppackages.github.io/references/Cattaneo-Jansson-Ma_2021_JSS.pdf}{lpdensity: Local Polynomial Density Estimation and Inference}. \emph{Journal of Statistical Software}, forthcoming.
 #'
 #' @seealso \code{\link{rddensity}}
 #'
